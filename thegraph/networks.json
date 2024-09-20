@@ -1,0 +1,8 @@
+{
+  "sepolia": {
+    "DVideo": {
+      "address": "0xA40C285Cf1F235d3b9B49A71BD0D43656de54282",
+      "startBlock": 0
+    }
+  }
+}
