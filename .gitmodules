@@ -1,0 +1,3 @@
+[submodule "web3-video-player-frontend"]
+	path = web3-video-player-frontend
+	url = https://github.com/Raaghav-m/web3-youtube
