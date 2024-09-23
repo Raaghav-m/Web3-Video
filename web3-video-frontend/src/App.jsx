@@ -3,18 +3,49 @@ import vid from "../src.mp4";
 import "./App.css";
 import Recommend from "./Components/Recommend";
 import { uploadToIpfs } from "./Utilities/UploadToIpfs";
+import { PinataSDK } from "pinata-web3";
+import { useWriteContract } from "wagmi";
+import DVideo from "../abi/DVideo.json";
+
+const pinataJWT = import.meta.env.VITE_PINATA_JWT;
+const pinataGateway = import.meta.env.VITE_PINATA_GATEWAY;
+
+const pinata = new PinataSDK({
+  pinataJwt: pinataJWT,
+  pinataGateway: pinataGateway,
+});
 
 function App() {
   const [count, setCount] = useState(0);
   const [buffer, setBuffer] = useState();
   const [title, setTitle] = useState();
+  const { writeContract } = useWriteContract({
+    abi: DVideo,
+    address: "0xA40C285Cf1F235d3b9B49A71BD0D43656de54282",
+    functionName: "uploadVideo",
+  });
   let arrayOfIpfsHash = new Array();
-
   async function handleSubmit(e) {
-    e.preventDefault();
-    const x = await uploadToIpfs(buffer, title);
-    arrayOfIpfsHash.push(x);
-    console.log("hello");
+    try {
+      e.preventDefault();
+      const blob = new Blob([buffer], { type: "video/mp4" });
+
+      const upload = await pinata.upload.file(blob);
+      const metaData = {
+        title: title,
+        time: new Date().toISOString(),
+        videoUrl: upload.IpfsHash,
+      };
+      const uploadMetadata = await pinata.upload.json(metaData);
+
+      await writeContract({
+        args: [uploadMetadata.IpfsHash, title],
+      });
+      arrayOfIpfsHash.push(uploadMetadata.IpfsHash);
+      console.log("hello");
+    } catch (error) {
+      console.log(error);
+    }
   }
   const captureFile = (event) => {
     event.preventDefault();
